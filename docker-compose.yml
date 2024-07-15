@@ -1,0 +1,51 @@
+#version: '3.8'
+
+services:
+  app:
+    build: 
+      context: ./docker/app
+      additional_contexts:
+        requirment_path: ./src/projects/${DJANGO_PROJECT_NAME}
+      args:
+        - DJANGO_PROJECT_NAME=${DJANGO_PROJECT_NAME}
+    # command: python manage.py runserver 0.0.0.0:8000
+    container_name: lampython_app
+    volumes:
+      - ./src/projects/${DJANGO_PROJECT_NAME}:/var/www/${DJANGO_PROJECT_NAME}
+      - ./src/logs/apache2:/var/log/apache2
+    depends_on:
+      - mysql
+    ports:
+      - 8000:8000
+      - 80:80
+    networks:
+      - mynet
+
+  mysql:
+    build: './docker/database'
+    container_name: lamp_mysql
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./src/data:/var/lib/mysql
+      - ./src/sql:/root/sql/
+    environment:
+      MYSQL_ROOT_PASSWORD: admin
+    networks:
+      - mynet
+
+  phpmyadmin:
+    build: './docker/phpmyadmin'
+    container_name: lamp_pma
+    ports:
+      - "8080:80"
+    depends_on:
+      - mysql
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+    networks:
+      - mynet
+
+networks:
+  mynet:
