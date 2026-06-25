@@ -1,5 +1,5 @@
 # pull official base image
-FROM python:3.12.4-slim
+FROM python:3.13-slim
 
 # set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
@@ -22,13 +22,13 @@ RUN chmod 755 -R /var/log/apache2 \
     && chown www-data:www-data -R /var/log/apache2
 
 # 虛擬環境
-COPY --from=requirment_path ./requirements.txt .
+COPY ./requirements.txt .
 RUN python -m venv /var/www/django_env
 
 ENV PATH="/var/www/django_env/bin:$PATH"
 
 RUN pip install --upgrade pip \
-    pip install -r requirements.txt
+    && pip install -r requirements.txt
 
 
 # APACHE2 設定
