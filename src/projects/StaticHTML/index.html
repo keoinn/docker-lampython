@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LAMPython Docker 開發環境指南</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --border: #334155;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-2: #818cf8;
+      --success: #4ade80;
+      --code-bg: #020617;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #1e3a5f 0%, #312e81 50%, #1e293b 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 3rem 1.5rem 2.5rem;
+    }
+
+    .hero-inner {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .badge {
+      display: inline-block;
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: 999px;
+      padding: 0.25rem 0.75rem;
+      font-size: 0.8rem;
+      margin-bottom: 1rem;
+    }
+
+    h1 {
+      font-size: clamp(1.75rem, 4vw, 2.5rem);
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 1.05rem;
+      max-width: 640px;
+    }
+
+    main {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+
+    section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+
+    h2 {
+      font-size: 1.15rem;
+      margin-bottom: 1rem;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    h2::before {
+      content: "";
+      width: 4px;
+      height: 1.1rem;
+      background: var(--accent-2);
+      border-radius: 2px;
+    }
+
+    p, li { color: var(--muted); }
+    p { margin-bottom: 0.75rem; }
+    ul, ol { padding-left: 1.25rem; margin-bottom: 0.75rem; }
+    li { margin-bottom: 0.35rem; }
+    li strong { color: var(--text); }
+
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      overflow-x: auto;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      margin: 0.75rem 0;
+    }
+
+    code {
+      font-family: "SF Mono", "Fira Code", Consolas, monospace;
+      color: #7dd3fc;
+    }
+
+    .inline-code {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.1rem 0.4rem;
+      font-size: 0.88em;
+      color: #7dd3fc;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 0.65rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th { color: var(--text); font-weight: 600; }
+    td { color: var(--muted); }
+    td code { font-size: 0.82rem; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0.75rem;
+      margin-top: 0.75rem;
+    }
+
+    .card {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+    }
+
+    .card-title {
+      color: var(--success);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.35rem;
+    }
+
+    .card-value {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .tree {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      font-family: "SF Mono", Consolas, monospace;
+      font-size: 0.82rem;
+      line-height: 1.8;
+      color: #a5b4fc;
+      white-space: pre;
+      overflow-x: auto;
+    }
+
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.85rem;
+      padding-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <span class="badge">StaticHTML Demo</span>
+      <h1>LAMPython Docker 開發環境</h1>
+      <p class="subtitle">
+        這是一個整合 Apache2、Python 3.13、Django 與 MySQL 的本機開發環境。
+        本頁面位於 <span class="inline-code">src/projects/StaticHTML/</span>，透過 volume 同步至容器內的 <span class="inline-code">/var/www/StaticHTML</span>。
+      </p>
+    </div>
+  </header>
+
+  <main>
+    <section>
+      <h2>快速開始</h2>
+      <ol>
+        <li>複製環境設定：<span class="inline-code">cp env .env</span>，並修改 <span class="inline-code">DJANGO_PROJECT_NAME</span></li>
+        <li>啟動所有服務：<span class="inline-code">docker compose up -d --build</span></li>
+        <li>設定 hosts（擇一）：
+          <ul>
+            <li>macOS：<span class="inline-code">echo -e "127.0.0.1 local.test\n127.0.0.1 demo.local.test" | sudo tee -a /etc/hosts</span></li>
+            <li>Windows：編輯 <span class="inline-code">C:\Windows\System32\drivers\etc\hosts</span>，加入 <span class="inline-code">local.test</span> 與 <span class="inline-code">demo.local.test</span></li>
+          </ul>
+        </li>
+        <li>開啟瀏覽器造訪下方服務位址</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>服務位址</h2>
+      <div class="grid">
+        <div class="card">
+          <div class="card-title">Django / Apache</div>
+          <div class="card-value">http://local.test</div>
+        </div>
+        <div class="card">
+          <div class="card-title">本 Demo 頁面</div>
+          <div class="card-value">http://demo.local.test</div>
+        </div>
+        <div class="card">
+          <div class="card-title">phpMyAdmin</div>
+          <div class="card-value">http://127.0.0.1:8080</div>
+        </div>
+        <div class="card">
+          <div class="card-title">MySQL</div>
+          <div class="card-value">127.0.0.1:3306</div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>目錄結構與 Volume 映射</h2>
+      <p>本機目錄會即時同步至容器，修改程式碼無需重新 build。</p>
+      <div class="tree">docker-lampython/
+├── docker-compose.yml
+├── scripts/                      # venv helper（py / pip / venv）
+├── .env                          # DJANGO_PROJECT_NAME 等設定
+├── docker/app/
+│   ├── Dockerfile
+│   ├── requirements.txt
+│   └── conf.d/                   → /etc/apache2/conf.d-host/
+└── src/
+    ├── projects/                 → /var/www/          (所有 Django 專案)
+    │   ├── DjangoBlog/
+    │   ├── StaticHTML/           → /var/www/StaticHTML/ (本頁面)
+    │   └── scripts/              → /var/www/scripts/   (Python demo)
+    ├── data/                     → /var/lib/mysql/
+    ├── sql/                      → /root/sql/
+    └── logs/apache2/             → /var/log/apache2/</div>
+    </section>
+
+    <section>
+      <h2>Container 一覽</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Container</th>
+            <th>用途</th>
+            <th>Port</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>lampython_app</code></td>
+            <td>Apache2 + mod_wsgi + Python</td>
+            <td>80, 8000</td>
+          </tr>
+          <tr>
+            <td><code>lamp_mysql</code></td>
+            <td>MySQL 資料庫</td>
+            <td>3306</td>
+          </tr>
+          <tr>
+            <td><code>lamp_pma</code></td>
+            <td>phpMyAdmin 管理介面</td>
+            <td>8080</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>常用指令</h2>
+      <p>啟動（背景模式，建議首次加 <span class="inline-code">--build</span>）：</p>
+      <pre><code>docker compose up -d --build</code></pre>
+
+      <p>停止並移除 container：</p>
+      <pre><code>docker compose down</code></pre>
+
+      <p>進入 app container 執行 Django 指令：</p>
+      <pre><code>docker exec -it lampython_app bash
+python manage.py migrate
+python manage.py createsuperuser</code></pre>
+
+      <p>修改 Apache 設定後重啟：</p>
+      <pre><code>docker exec -it lampython_app apachectl restart</code></pre>
+
+      <p>查看 container IP：</p>
+      <pre><code>docker inspect -f '{{.Name}} - {{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(docker ps -aq)</code></pre>
+
+      <p>安裝 Python 套件至 venv（<span class="inline-code">/opt/django_env</span>）：</p>
+      <pre><code># 安裝單一套件
+docker exec -it lampython_app pip install &lt;package_name&gt;
+
+# 明確指定 venv 的 pip
+docker exec -it lampython_app /opt/django_env/bin/pip install &lt;package_name&gt;
+
+# 從本機 requirements.txt 批次安裝
+docker cp docker/app/requirements.txt lampython_app:/tmp/requirements.txt
+docker exec -it lampython_app pip install -r /tmp/requirements.txt</code></pre>
+      <p>
+        若要永久保留套件，請將套件寫入 <span class="inline-code">docker/app/requirements.txt</span>，
+        再執行 <span class="inline-code">docker compose up -d --build</span> 重新 build image。
+      </p>
+    </section>
+
+    <section>
+      <h2>使用 venv 執行 Python</h2>
+      <p>
+        Container 內 venv 位於 <span class="inline-code">/opt/django_env</span>。
+        專案根目錄提供 <span class="inline-code">scripts/</span> helper，可在本機直接透過 venv 執行程式。
+      </p>
+
+      <p>執行 Python 程式碼或 .py 檔案：</p>
+      <pre><code># 一行指令
+./scripts/py -c "print('hello')"
+
+# 執行 demo 腳本（src/projects/scripts/ → /var/www/scripts/）
+./scripts/py /var/www/scripts/hello.py
+
+# 在 Django 專案目錄執行 manage.py
+./scripts/py manage.py migrate
+./scripts/py manage.py createsuperuser</code></pre>
+
+      <p>進入已啟用 venv 的互動式 shell：</p>
+      <pre><code>./scripts/venv
+
+# 或在 venv 中執行單一指令
+./scripts/venv python manage.py shell</code></pre>
+
+      <p>自訂工作目錄（對應 <span class="inline-code">src/projects/</span> 下的子目錄）：</p>
+      <pre><code>LAMPYTHON_WORKDIR=/var/www/scripts ./scripts/py hello.py</code></pre>
+
+      <p>等效的手動 docker 指令：</p>
+      <pre><code>docker exec -it -w /var/www/DjangoBlog lampython_app /opt/django_env/bin/python manage.py migrate
+docker exec -it lampython_app /opt/django_env/bin/python -c "print('hello')"</code></pre>
+
+      <p>使用 helper 安裝套件：</p>
+      <pre><code>./scripts/pip install requests
+./scripts/pip list</code></pre>
+    </section>
+
+    <section>
+      <h2>Apache 設定檔（conf.d）</h2>
+      <p>
+        <span class="inline-code">docker/app/conf.d/</span> 下的 <span class="inline-code">*.conf</span>
+        會透過 volume 同步至容器，並由 Apache 自動載入。
+        新增或修改設定檔後，執行 <span class="inline-code">apachectl restart</span> 即可生效，無需重新 build image。
+      </p>
+      <ul>
+        <li><span class="inline-code">local.test.conf</span> — Django 專案（<span class="inline-code">local.test</span>）</li>
+        <li><span class="inline-code">statichtml.conf</span> — StaticHTML Demo 頁面（<span class="inline-code">demo.local.test</span>）</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Django 連線 MySQL 設定</h2>
+      <p>在 Django 的 <span class="inline-code">settings.py</span> 中使用以下設定（容器內 hostname 為 <span class="inline-code">mysql</span>）：</p>
+      <pre><code>import pymysql
+pymysql.install_as_MySQLdb()
+
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": "django",
+        "USER": "root",
+        "PASSWORD": "admin",
+        "HOST": "mysql",
+        "PORT": "3306",
+        "OPTIONS": {
+            "init_command": "SET sql_mode='STRICT_TRANS_TABLES'"
+        }
+    }
+}</code></pre>
+    </section>
+
+    <section>
+      <h2>新增專案</h2>
+      <ol>
+        <li>在 <span class="inline-code">src/projects/</span> 建立新專案資料夾</li>
+        <li>在 <span class="inline-code">docker/app/conf.d/</span> 新增對應的 Apache VirtualHost 設定</li>
+        <li>重啟 Apache：<span class="inline-code">docker exec -it lampython_app apachectl restart</span></li>
+      </ol>
+      <p>所有放在 <span class="inline-code">src/projects/</span> 的專案都會映射到 <span class="inline-code">/var/www/</span>，可直接在容器內存取。</p>
+    </section>
+
+    <footer>
+      LAMPython Docker Dev Environment &mdash; 若你看到此頁面，代表 StaticHTML volume 映射運作正常。
+    </footer>
+  </main>
+</body>
+</html>

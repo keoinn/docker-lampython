@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# 在 container venv 中執行 Python
+# 用法:
+#   ./scripts/py -c "print('hello')"
+#   ./scripts/py /var/www/scripts/hello.py
+#   LAMPYTHON_WORKDIR=/var/www/scripts ./scripts/py hello.py
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091
+source "$SCRIPT_DIR/lib.sh"
+
+ensure_container
+
+docker exec -it -w "$WORKDIR" "$CONTAINER" "$VENV_PYTHON" "$@"
