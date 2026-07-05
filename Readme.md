@@ -78,6 +78,66 @@ docker exec -it lampython_app <COMMAND> <ARG>
 docker exec -it lampython_app apachectl restart
 ```
 
+### Install Python Packages (venv)
+Container 內 Python 虛擬環境位於 `/opt/django_env`，PATH 已預設指向 venv，可直接使用 `pip`。
+
+```sh
+# 安裝單一套件
+docker exec -it lampython_app pip install <package_name>
+
+# 或明確指定 venv 的 pip
+docker exec -it lampython_app /opt/django_env/bin/pip install <package_name>
+
+# 從本機 requirements.txt 批次安裝至 container
+docker cp docker/app/requirements.txt lampython_app:/tmp/requirements.txt
+docker exec -it lampython_app pip install -r /tmp/requirements.txt
+```
+
+若要**永久保留**套件，請將套件加入 `docker/app/requirements.txt` 後重新 build：
+
+```sh
+docker compose up -d --build
+```
+
+### Run Python with venv
+Container 內 venv 路徑為 `/opt/django_env`。專案根目錄提供 helper 腳本，可在本機直接透過 container venv 執行 Python：
+
+```sh
+# 執行 Python 程式碼（一行）
+./scripts/py -c "print('hello')"
+
+# 執行 .py 檔案（路徑為 container 內路徑）
+./scripts/py /var/www/scripts/hello.py
+
+# 切換工作目錄後執行（例如 Django manage.py）
+./scripts/py manage.py migrate
+
+# 進入已啟用 venv 的互動式 shell
+./scripts/venv
+
+# 在 venv shell 中執行單一指令
+./scripts/venv python manage.py runserver 0.0.0.0:8000
+
+# 使用 venv 的 pip 安裝套件
+./scripts/pip install requests
+./scripts/pip list
+```
+
+自訂工作目錄（對應 `src/projects/` 下的子目錄）：
+
+```sh
+LAMPYTHON_WORKDIR=/var/www/scripts ./scripts/py hello.py
+```
+
+Demo 腳本位於 `src/projects/scripts/hello.py`，映射至 container 的 `/var/www/scripts/hello.py`。
+
+等效的手動 docker 指令：
+
+```sh
+docker exec -it -w /var/www/DjangoBlog lampython_app /opt/django_env/bin/python manage.py migrate
+docker exec -it lampython_app /opt/django_env/bin/python -c "print('hello')"
+```
+
 ### Commit Version Log
 ```
 [2024-07-15] Apache2 + Python 3.12 + MySQL

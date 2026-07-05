@@ -23,17 +23,16 @@ RUN chmod 755 -R /var/log/apache2 \
 
 # 虛擬環境
 COPY ./requirements.txt .
-RUN python -m venv /var/www/django_env
+RUN python -m venv /opt/django_env
 
-ENV PATH="/var/www/django_env/bin:$PATH"
+ENV PATH="/opt/django_env/bin:$PATH"
 
 RUN pip install --upgrade pip \
     && pip install -r requirements.txt
 
 
 # APACHE2 設定
-COPY ./conf.d/local.test.conf /etc/apache2/sites-available/local.test.conf
-RUN a2ensite local.test.conf 
+RUN echo 'IncludeOptional /etc/apache2/conf.d-host/*.conf' >> /etc/apache2/apache2.conf
 
 WORKDIR /var/www/${DJANGO_PROJECT_NAME}
 
